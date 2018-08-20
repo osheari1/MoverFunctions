@@ -133,6 +133,15 @@ function retryNotifyDrivers(
     })
 }
 
+function removeJobRequestDatabase(requestId: string): Promise<any> {
+    return admin.firestore().doc(`jobRequests/${requestId}`).delete().then(() => {
+        console.log(`Deleted jobRequest ${requestId} from jobRequest collection.`);
+    }, err => {
+        console.log(err);
+    });
+}
+
+
 exports.notifyDriversOfNewJobRequests = functions.firestore
     .document( 'jobRequests/{requestId}')
     .onCreate((snap, context) => {
@@ -162,6 +171,9 @@ exports.notifyDriversOfNewJobRequests = functions.firestore
                         // TODO: If no drivers accepted send message to client.
                         console.log('No drivers accepted')
                     }
+                    removeJobRequestDatabase(requestId).catch(err => {
+                        console.log(err);
+                    });
                 }, err => {
                     console.log(err);
                 });
