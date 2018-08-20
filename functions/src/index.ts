@@ -116,7 +116,6 @@ function retryNotifyDrivers(
     const requestData = notifyData[1];
     const driverArray = notifyData[2];
 
-    // TODO: Only retry for drivers that timed out
     return notifyDrivers(requestId, requestData, driverArray)
         .then(jobAccepted => {
         if (jobAccepted) {
@@ -144,6 +143,7 @@ exports.notifyDriversOfNewJobRequests = functions.firestore
         return driverRef.get().then(driverSnap => {
             // Get driver data and shuffle
             let driverArray = Utils.shuffleArray(driverSnap.docs.map(doc => [doc.id, doc.data()]));
+            // TODO: Add retry functionality for timed out drivers
             // retryNotifyDrivers(
             //     [requestId, requestData, driverArray],
             //     3,
@@ -158,6 +158,10 @@ exports.notifyDriversOfNewJobRequests = functions.firestore
             notifyDrivers(requestId, requestData, driverArray)
                 .then(jobAccepted => {
                     console.log('Drivers notified');
+                    if (!jobAccepted) {
+                        // TODO: If no drivers accepted send message to client.
+                        console.log('No drivers accepted')
+                    }
                 }, err => {
                     console.log(err);
                 });
